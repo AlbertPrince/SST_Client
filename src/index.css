@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #845000;
+  --color-primary-container: #a66600;
+  --color-on-primary: #ffffff;
+      
+  --color-secondary: #825432;
+  --color-secondary-container: #ffc298;
+  --color-on-secondary: #ffffff;
+      
+  --color-tertiary: #ad2b1f;
+      
+  --color-background: #fff8ef;
+  --color-on-background: #1f1b0e;
+      
+  --color-surface: #fff8ef;
+  --color-on-surface: #1f1b0e;
+  --color-on-surface-variant: #534435;
+      
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #fdf3dc;
+  --color-surface-container: #f7edd6;
+  --color-surface-container-highest: #ebe2cb;
+      
+  --color-outline: #857463;
+  --color-outline-variant: #d8c3af;
+  
+  --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Noto Serif", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-headline: "Noto Serif", ui-serif, Georgia, Cambria, serif;
+  --font-body: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  
+  /* Legacy brand colors for other pages compatibility */
+  --color-brand-amber: #D4860A;
+  --color-brand-brown: #4A2000;
+  --color-brand-red: #C0392B;
+  --color-brand-cream: #FDF3DC;
+  --color-brand-gold-light: #F5C842;
+  --color-ghana-green: #006B3F;
+}
+
+body {
+  @apply font-body bg-background text-on-surface leading-relaxed;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-headline;
+}
+
+/* Authentic Kente Strip / Divider */
+.kente-stripe {
+  height: 4px;
+  background: linear-gradient(to right, #3B1A00 25%, #C97D0A 25%, #C97D0A 50%, #C0392B 50%, #C0392B 75%, #3B1A00 75%);
+  background-size: 80px 100%;
+}
+
+.editorial-shadow {
+  box-shadow: 0 20px 40px -10px rgba(31, 27, 14, 0.08);
+}
+
+.hero-clip {
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 0% 100%);
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Subtle Kente pattern utility (legacy support) */
+.bg-kente-pattern {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(212, 134, 10, 0.15) 10px,
+    rgba(212, 134, 10, 0.15) 20px
+  );
+}
+
+.kente-strip {
+  height: 8px;
+  width: 100%;
+  background: repeating-linear-gradient(
+    to right,
+    var(--color-brand-gold-light) 0,
+    var(--color-brand-gold-light) 40px,
+    var(--color-brand-red) 40px,
+    var(--color-brand-red) 80px,
+    var(--color-ghana-green) 80px,
+    var(--color-ghana-green) 120px,
+    var(--color-brand-brown) 120px,
+    var(--color-brand-brown) 160px
+  );
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-outline-variant);
+  border-radius: 20px;
+}
