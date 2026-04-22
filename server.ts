@@ -22,8 +22,8 @@ function getStripe(): Stripe {
 }
 
 function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
   if (url && key) {
     return createClient(url, key);
   }
@@ -50,6 +50,9 @@ async function startServer() {
 
       if (event.type === 'payment_intent.succeeded') {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const isDelivery = paymentIntent.metadata?.fulfillmentMethod === 'delivery';
+        const deliveryFeeCents = isDelivery ? 1500 : 0;
+        const subtotal = (paymentIntent.amount - deliveryFeeCents) / 100;
         
         const supabase = getSupabase();
         if (supabase) {
@@ -57,10 +60,10 @@ async function startServer() {
           await supabase.from('orders').insert({
               stripe_payment_intent_id: paymentIntent.id,
               customer_email: paymentIntent.receipt_email || paymentIntent.metadata?.email || "unknown@email.com",
-              subtotal: (paymentIntent.amount - 1500) / 100, // subtract delivery
+              subtotal: subtotal,
               status: "processing",
               items: paymentIntent.metadata?.items ? JSON.parse(paymentIntent.metadata.items) : [],
-              notes: paymentIntent.metadata?.notes || ''
+              notes: (paymentIntent.metadata?.notes || '') + (isDelivery ? ' (Delivery)' : ' (Pickup)')
           });
         }
       }
@@ -110,10 +113,10 @@ async function startServer() {
 
   app.post("/api/create-payment-intent", async (req, res) => {
     try {
-      const { items, email, notes } = req.body;
+      const { items, email, notes, fulfillmentMethod } = req.body;
       
-      // Calculate total securely on server (delivery is 15.00)
-      const deliveryFeeCents = 1500;
+      // Calculate total securely on server
+      const deliveryFeeCents = fulfillmentMethod === 'delivery' ? 1500 : 0;
       let subtotalCents = 0;
       if (items && Array.isArray(items)) {
         for (const item of items) {
@@ -132,6 +135,7 @@ async function startServer() {
         metadata: {
            email: email || '',
            notes: notes || '',
+           fulfillmentMethod: fulfillmentMethod || 'pickup',
            items: JSON.stringify(items.map((i: any) => ({
               id: i.product.id,
               name: i.product.name,
@@ -157,16 +161,28 @@ async function startServer() {
   // Keep Payment Intent fresh with notes and email
   app.post("/api/update-payment-intent", async (req, res) => {
     try {
-      const { paymentIntentId, email, notes } = req.body;
+      const { paymentIntentId, email, notes, fulfillmentMethod, items } = req.body;
       if (!paymentIntentId) {
          return res.status(400).send({ error: { message: "Missing PaymentIntent ID" } });
       }
+      
+      const deliveryFeeCents = fulfillmentMethod === 'delivery' ? 1500 : 0;
+      let subtotalCents = 0;
+      if (items && Array.isArray(items)) {
+        for (const item of items) {
+          subtotalCents += Math.round(item.product.price * 100) * item.quantity;
+        }
+      }
+      const totalAmountCents = subtotalCents > 0 ? subtotalCents + deliveryFeeCents : undefined;
+
       const stripe = getStripe();
       await stripe.paymentIntents.update(paymentIntentId, {
+        ...(totalAmountCents ? { amount: totalAmountCents } : {}),
         receipt_email: email || undefined,
         metadata: {
            email: email || '',
-           notes: notes || ''
+           notes: notes || '',
+           fulfillmentMethod: fulfillmentMethod || 'pickup'
         }
       });
       res.send({ success: true });
@@ -223,6 +239,88 @@ async function startServer() {
      // fallback
      mockReviewsStore.unshift(newReview);
      res.json({ success: true, review: newReview });
+  });
+
+  // Admin Authentication Middleware
+  const requireAdmin = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const token = authHeader.replace('Bearer ', '');
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
+    const supabaseAuth = createClient(supabaseUrl, supabaseKey);
+    const { data: { user }, error } = await supabaseAuth.auth.getUser(token);
+    if (error || !user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    // Note: Can also check if user email is strictly allowed here.
+    next();
+  };
+
+  // --- ADMIN ROUTES (Uses Service Role Key bypassing RLS) ---
+  app.get("/api/admin/orders", requireAdmin, async (req, res) => {
+    try {
+      const supabase = getSupabase();
+      if (!supabase) return res.json([]);
+      const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      res.json(data);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.patch("/api/admin/orders/:id", requireAdmin, async (req, res) => {
+    try {
+      const supabase = getSupabase();
+      if (!supabase) return res.json({ success: false });
+      const { status } = req.body;
+      const { error } = await supabase.from('orders').update({ status }).eq('id', req.params.id);
+      if (error) throw error;
+      res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.get("/api/admin/products", requireAdmin, async (req, res) => {
+    try {
+      const supabase = getSupabase();
+      if (!supabase) return res.json(mockProducts);
+      const { data, error } = await supabase.from('products').select('*').order('category').order('name');
+      if (error) throw error;
+      res.json(data);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.post("/api/admin/products", requireAdmin, async (req, res) => {
+    try {
+      const supabase = getSupabase();
+      if (!supabase) return res.json({ success: false });
+      const { error } = await supabase.from('products').insert([req.body]);
+      if (error) throw error;
+      res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.patch("/api/admin/products/:id", requireAdmin, async (req, res) => {
+    try {
+      const supabase = getSupabase();
+      if (!supabase) return res.json({ success: false });
+      const { error } = await supabase.from('products').update(req.body).eq('id', req.params.id);
+      if (error) throw error;
+      res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.delete("/api/admin/products/:id", requireAdmin, async (req, res) => {
+    try {
+      const supabase = getSupabase();
+      if (!supabase) return res.json({ success: false });
+      const { error } = await supabase.from('products').delete().eq('id', req.params.id);
+      if (error) throw error;
+      res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
   // Vite middleware for development

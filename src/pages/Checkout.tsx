@@ -7,7 +7,7 @@ import { Elements, PaymentElement, ExpressCheckoutElement, useStripe, useElement
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
-const CheckoutForm = ({ email, setEmail, notes, setNotes, total, onSuccess, paymentIntentId }: { email: string, setEmail: (e: string) => void, notes: string, setNotes: (e: string) => void, total: number, onSuccess: (email: string, notes: string) => void, paymentIntentId: string }) => {
+const CheckoutForm = ({ email, setEmail, notes, setNotes, total, onSuccess, paymentIntentId, fulfillmentMethod, items }: { email: string, setEmail: (e: string) => void, notes: string, setNotes: (e: string) => void, total: number, onSuccess: (email: string, notes: string) => void, paymentIntentId: string, fulfillmentMethod: string, items: any[] }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -33,7 +33,7 @@ const CheckoutForm = ({ email, setEmail, notes, setNotes, total, onSuccess, paym
       await fetch('/api/update-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentIntentId, email, notes }),
+        body: JSON.stringify({ paymentIntentId, email, notes, fulfillmentMethod, items }),
       });
     } catch (err) {
       console.warn('Failed to update meta before confirm:', err);
@@ -138,11 +138,12 @@ export const Checkout = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [notes, setNotes] = useState('');
+  const [fulfillmentMethod, setFulfillmentMethod] = useState<'pickup' | 'delivery'>('pickup');
   const [clientSecret, setClientSecret] = useState('');
   const [paymentIntentId, setPaymentIntentId] = useState('');
   const [initError, setInitError] = useState('');
 
-  const deliveryFee = 15.00;
+  const deliveryFee = fulfillmentMethod === 'delivery' ? 15.00 : 0.00;
   const total = subtotal + deliveryFee;
 
   useEffect(() => {
@@ -154,7 +155,7 @@ export const Checkout = () => {
         const response = await fetch('/api/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items, email, notes }),
+          body: JSON.stringify({ items, email, notes, fulfillmentMethod }),
         });
         
         const data = await response.json();
@@ -171,14 +172,25 @@ export const Checkout = () => {
     };
     
     initializePayment();
-  }, [items]);
+  }, [items]); // Deliberately keeping items only, backend will update amt on confirm
+
+  // Automatically update the server payment intent amount when fulfillment method changes
+  useEffect(() => {
+    if (paymentIntentId) {
+      fetch('/api/update-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentIntentId, email, notes, fulfillmentMethod, items }),
+      }).catch(err => console.error(err));
+    }
+  }, [fulfillmentMethod]);
 
   const handleSuccess = (confirmedEmail: string, orderNotes: string) => {
       const orderId = 'ORD-' + Math.floor(Math.random() * 1000000);
       const newOrder = {
         orderId,
         email: confirmedEmail,
-        notes: orderNotes,
+        notes: orderNotes + (fulfillmentMethod === 'delivery' ? ' (Delivery)' : ' (Pickup)'),
         date: new Date().toISOString(),
         total,
         status: 'Preparing',
@@ -281,15 +293,36 @@ export const Checkout = () => {
             ))}
           </div>
 
+          <div className="pt-8 border-t-2 border-outline-variant/20">
+            <h3 className="text-xl font-headline font-bold text-on-surface mb-4">Fulfillment Method</h3>
+            <div className="flex gap-4">
+              <label className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all ${fulfillmentMethod === 'pickup' ? 'border-primary bg-primary/5 text-primary' : 'border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-highest'}`}>
+                <input type="radio" name="fulfillment" value="pickup" checked={fulfillmentMethod === 'pickup'} onChange={() => setFulfillmentMethod('pickup')} className="hidden" />
+                <span className="material-symbols-outlined">storefront</span>
+                <span className="font-bold">Store Pickup</span>
+              </label>
+              <label className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all ${fulfillmentMethod === 'delivery' ? 'border-primary bg-primary/5 text-primary' : 'border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-highest'}`}>
+                <input type="radio" name="fulfillment" value="delivery" checked={fulfillmentMethod === 'delivery'} onChange={() => setFulfillmentMethod('delivery')} className="hidden" />
+                <span className="material-symbols-outlined">local_shipping</span>
+                <span className="font-bold">Local Delivery</span>
+              </label>
+            </div>
+            {fulfillmentMethod === 'delivery' && (
+              <p className="text-sm text-on-surface-variant mt-3 italic">Delivery fee of $15.00 applies to your order. We'll be in touch to confirm coordinates.</p>
+            )}
+          </div>
+
           <div className="pt-8 space-y-4 border-t-2 border-outline-variant/20">
             <div className="flex justify-between items-center text-on-surface-variant text-lg">
               <span>Subtotal</span>
               <span className="font-headline">${subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between items-center text-on-surface-variant text-lg">
-              <span>Heritage Delivery</span>
-              <span className="font-headline">${deliveryFee.toFixed(2)}</span>
-            </div>
+            {fulfillmentMethod === 'delivery' && (
+              <div className="flex justify-between items-center text-on-surface-variant text-lg">
+                <span>Heritage Delivery</span>
+                <span className="font-headline">${deliveryFee.toFixed(2)}</span>
+              </div>
+            )}
             <div className="flex justify-between items-center text-2xl font-bold text-on-surface pt-4 border-t border-outline-variant/10">
               <span className="font-headline">Total</span>
               <span className="font-headline text-primary">${total.toFixed(2)}</span>
@@ -362,6 +395,8 @@ export const Checkout = () => {
                   total={total} 
                   onSuccess={handleSuccess} 
                   paymentIntentId={paymentIntentId}
+                  fulfillmentMethod={fulfillmentMethod}
+                  items={items}
                 />
              </Elements>
           )}

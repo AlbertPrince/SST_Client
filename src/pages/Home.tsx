@@ -2,11 +2,43 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../data/products';
 import { useCart } from '../context/CartContext';
+import { motion, AnimatePresence } from 'motion/react';
+import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
+
+const testimonials = [
+  {
+    id: 1,
+    name: "Kwame A.",
+    rating: 5,
+    feedback: "The Abele Walls transported me right back to my childhood in Osu. Absolutely authentic and delicious. I order these every week!"
+  },
+  {
+    id: 2,
+    name: "Sarah J.",
+    rating: 5,
+    feedback: "I tried the Sobolo at a pop-up and was blown away. It has the perfect balance of sweetness and ginger kick. Highly recommend!"
+  },
+  {
+    id: 3,
+    name: "David M.",
+    rating: 4,
+    feedback: "First time trying Hausa Beer and it's incredible. So refreshing on a hot day. The spices are perfectly balanced."
+  }
+];
 
 export const Home = () => {
   const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+
+  const nextTestimonial = () => {
+    setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+  };
+
+  const prevTestimonial = () => {
+    setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  };
 
   useEffect(() => {
     fetch('/api/products')
@@ -21,9 +53,10 @@ export const Home = () => {
       });
   }, []);
   
-  // Using the exact products from the reference design
+  // Grab specific items to feature, or fallback to the first 3 available products
   const zomkom = products.find(p => p.name.toLowerCase().includes('zomkom'));
   const abele = products.find(p => p.name.toLowerCase().includes('abele') && p.name.toLowerCase().includes('original'));
+  const streetMix = products.find(p => p.name.toLowerCase().includes('street mix'));
 
   const featuredProducts = [];
   
@@ -31,9 +64,7 @@ export const Home = () => {
     featuredProducts.push({
       ...zomkom,
       displayTag: 'Refreshing & Spicy',
-      image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAbDfSNX51_wOebCFnwvRXwEj7PRXBusQaEMyp-RU-Dy5SXCGMpWzeYXJgfu0i6Dem99g85N4-Rwfosd3rwwiE1xKxeTyfamW-G7pplV4yrzcQHv05hBAVVXQh2GAugVpkrd5RDSM5M5_aD43eorNT5kSgq9sQeAO9LNZamXlUW1v0SN2Nn-QgTfAhX91uf5D9zBtClEYzaDDNlzxTl5fwcHLr30p8Dm-BnOYffVIu6P21lj6i0eu9D3q9fk-dV0qeiafCpTANuS5I",
-      description: "Spiced millet drink with a signature kick of ginger and cloves. Served chilled for ultimate refreshment.",
-      price: 15.00
+      description: "Spiced millet drink with a signature kick of ginger and cloves. Served chilled for ultimate refreshment."
     });
   }
   
@@ -42,30 +73,29 @@ export const Home = () => {
       ...abele,
       name: "Abele Walls",
       displayTag: 'Creamy Heritage',
-      image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCh7nwDwHrTTgDjar49RSDp3W0GP2iA2Y7mRv5kFsWTsSi45lBHXdSuTDJqGQjYut4N5BPDz-647mWrfaE-gp9NOWz38Us_DR7lIuj5ycGKRRxsN11jnYJeJNm4bBhavs0hnECI8yYFIZoe_OMbNtS3kKiWvWKaEaEC-nYaob0pDtIWoEgOP8EEc38sWXB0TZ0vNTJsEJr24rf5AWHXR1iuPJL0j75O1KZc_UgnBex1yijz8cMCeApRT2FJCwzcwqab6tmQiRQ1LZU",
-      description: "Our signature traditional cornmeal and milk ice cream. Rich, nostalgic, and perfectly balanced.",
-      price: 20.00
+      description: "Our signature traditional cornmeal and milk ice cream. Rich, nostalgic, and perfectly balanced."
     });
   }
 
-  // Always add street mix
-  featuredProducts.push({
-    id: "street-mix",
-    name: "Street Mix",
-    slug: "street-mix",
-    category: "other",
-    displayTag: 'Daily Special',
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuB0PCDdbLtIymadBWISjPzOaPb75wT-xsRJUX__nPHIlCXsNQUdvrOBRvCWbVf9IWW01hN99V02TWFQ9aNg6E1MIwGEGIDuoRPSijv_wCv9-dZ1-HTNTqA0ESaJk0RtuVEkaNm0FY6pmTboDn4qm6CEmgVsWVzDqWi8w6BN67nr-eN2xkUbZ4UkQMNMmKn1o7ec4LGaiv0nZuFKeHK9iQjN3lUc7kOWwxUPuHYSdOTH7XxXWPSi-RKcRTxaqaWpI0B6wpF8e8VGw5M",
-    description: "A curated assortment of our finest sweet and savory snacks, changing daily based on local harvest.",
-    price: 25.00,
-    unitLabel: 'Box',
-    shortDescription: '',
-    fullDescription: '',
-    culturalOrigin: '',
-    healthBenefits: [],
-    ingredients: [],
-    isAvailable: true
-  } as unknown as Product & { displayTag: string; description: string; });
+  if (streetMix) {
+    featuredProducts.push({
+      ...streetMix,
+      displayTag: 'Daily Special',
+      description: "A curated assortment of our finest sweet and savory snacks, changing daily based on local harvest."
+    });
+  }
+
+  // If we have fewer than 3 featured products, fill the remaining with other items from DB
+  for (const p of products) {
+    if (featuredProducts.length >= 3) break;
+    if (!featuredProducts.find(fp => fp.id === p.id)) {
+      featuredProducts.push({
+        ...p,
+        displayTag: 'Customer Favorite',
+        description: p.shortDescription || "Taste the authentic flavors of West Africa."
+      });
+    }
+  }
 
   return (
     <div>
@@ -81,7 +111,7 @@ export const Home = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-surface-container-low via-surface-container-low/40 to-transparent"></div>
         </div>
         
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 w-full pt-16 pb-24 md:py-0">
           <div className="max-w-2xl">
             <h1 className="font-headline text-5xl md:text-7xl text-on-surface leading-tight mb-6">
               Authentic Ghanaian Street Flavors · <span className="italic text-primary">A Taste of Home for Everyone</span>
@@ -89,7 +119,7 @@ export const Home = () => {
             <p className="text-xl md:text-2xl text-on-surface-variant mb-10 font-light">
               Handcrafted millet drinks and artisanal ice cream that transport you to the bustling streets of Accra.
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4 pb-12 md:pb-0">
               <Link to="/menu" className="bg-gradient-to-r from-primary to-primary-container text-on-primary px-10 py-5 rounded-full font-semibold text-lg editorial-shadow hover:-translate-y-1 transition-transform active:scale-95">
                 Order for Pickup/Delivery
               </Link>
@@ -154,6 +184,75 @@ export const Home = () => {
         )}
       </section>
 
+      {/* Testimonials */}
+      <section className="py-24 px-4 sm:px-8 bg-surface-container-low overflow-hidden relative border-t border-outline-variant/30">
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <h2 className="font-headline text-4xl text-on-surface mb-12 italic">What Our Family Thinks</h2>
+          
+          <div className="relative bg-surface-container-lowest p-8 md:p-12 rounded-3xl editorial-shadow">
+            <button 
+              onClick={prevTestimonial}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -ml-4 md:-ml-8 bg-primary text-on-primary p-2 md:p-3 rounded-full hover:bg-primary-container hover:-translate-x-1 transition-all z-20 editorial-shadow"
+              aria-label="Previous testimonial"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            
+            <button 
+              onClick={nextTestimonial}
+              className="absolute right-0 top-1/2 -translate-y-1/2 -mr-4 md:-mr-8 bg-primary text-on-primary p-2 md:p-3 rounded-full hover:bg-primary-container hover:translate-x-1 transition-all z-20 editorial-shadow"
+              aria-label="Next testimonial"
+            >
+              <ChevronRight size={24} />
+            </button>
+
+            <div className="min-h-[220px] flex items-center justify-center relative">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentTestimonial}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex flex-col items-center"
+                >
+                  <div className="flex gap-1 mb-6 text-[#C97D0A]">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star 
+                        key={i}
+                        size={24}
+                        fill={i < testimonials[currentTestimonial].rating ? "currentColor" : "none"}
+                        className={i < testimonials[currentTestimonial].rating ? "" : "text-outline"}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xl md:text-2xl text-on-surface-variant font-light italic mb-8 leading-relaxed max-w-2xl px-6">
+                    "{testimonials[currentTestimonial].feedback}"
+                  </p>
+                  <div className="font-headline font-bold text-lg text-primary">
+                    — {testimonials[currentTestimonial].name}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            
+            {/* Dots */}
+            <div className="flex justify-center gap-2 mt-8">
+              {testimonials.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentTestimonial(idx)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all ${
+                    idx === currentTestimonial ? "bg-primary w-8" : "bg-primary/30"
+                  }`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Why Choose Us */}
       <section className="bg-surface-container py-24 px-4 sm:px-8 mt-12 relative border-t border-outline-variant/30">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-16 items-start">
@@ -183,8 +282,52 @@ export const Home = () => {
         </div>
       </section>
 
+      {/* CTA Section */}
+      <section className="bg-primary text-on-primary py-24 px-4 sm:px-8 mt-12 text-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        {/* Subtle patterned background or gradient overlay could go here */}
+        <div className="max-w-4xl mx-auto relative z-10">
+          <h2 className="font-headline text-5xl lg:text-6xl font-bold mb-6 italic">Ready to Taste Something Real?</h2>
+          <p className="text-xl md:text-2xl font-light mb-10 leading-relaxed opacity-90 max-w-2xl mx-auto">
+            Place your order and experience authentic Ghanaian street beverages — crafted in small batches, delivered with love.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mb-16">
+            <Link 
+              to="/menu" 
+              className="bg-surface text-primary px-12 py-5 rounded-full font-bold text-lg hover:scale-105 transition-transform editorial-shadow"
+            >
+              Order Now
+            </Link>
+            <a 
+              href="https://wa.me/13606087185"
+              className="bg-primary-container text-on-primary-container px-12 py-5 rounded-full font-bold text-lg hover:scale-105 transition-transform flex items-center justify-center gap-3 editorial-shadow border border-on-primary/20"
+            >
+              <span className="material-symbols-outlined">chat</span>
+              WhatsApp Order
+            </a>
+          </div>
+          
+          <div className="bg-primary-container/20 backdrop-blur-sm p-8 md:p-10 rounded-2xl mx-auto border border-on-primary/10">
+            <p className="text-lg md:text-xl font-medium mb-6">
+              Available for <strong className="font-bold">pickup</strong>, <strong className="font-bold">local delivery</strong>, and <strong className="font-bold">shipping</strong>.
+            </p>
+            <div className="h-px bg-on-primary/20 w-3/4 mx-auto mb-6"></div>
+            <p className="mb-4 font-medium italic">Payment accepted via Stripe (Credit/Debit), or manually via WhatsApp using:</p>
+            <div className="flex flex-col md:flex-row justify-center items-center gap-x-8 gap-y-3 font-mono text-sm md:text-base bg-black/20 py-4 px-6 rounded-xl inline-flex w-full md:w-auto">
+              <span><strong className="font-sans text-brand-amber-light">Zelle:</strong> sst.treat@gmail.com</span>
+              <span className="hidden md:inline text-on-primary/30">|</span>
+              <span><strong className="font-sans text-brand-amber-light">Cash App:</strong> $STamaks</span>
+              <span className="hidden md:inline text-on-primary/30">|</span>
+              <span><strong className="font-sans text-brand-amber-light">Venmo:</strong> @sstreettreats</span>
+            </div>
+            <p className="mt-4 text-sm opacity-80">(Cash also accepted for in-person pickups)</p>
+          </div>
+        </div>
+      </section>
+
       {/* Kente Divider */}
-      <div className="kente-stripe mt-12"></div>
+      <div className="kente-stripe border-t border-outline-variant/30"></div>
 
       {/* Sticky FAB */}
       <div className="fixed bottom-8 right-8 z-40 group">

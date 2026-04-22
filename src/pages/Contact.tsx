@@ -26,14 +26,14 @@ export const Contact = () => {
         <div className="md:col-span-7">
           <div className="kente-stripe w-32 mb-8"></div>
           <h1 className="font-headline text-5xl md:text-7xl font-bold text-on-surface mb-6 leading-tight">
-            Let's Talk <span className="italic text-primary">Tastes.</span>
+            Share a Taste of <span className="italic text-primary">Home.</span>
           </h1>
           <p className="text-xl text-on-surface-variant max-w-xl leading-relaxed mb-10 font-headline font-light">
-            Whether it's a small gathering or a grand celebration, we bring the soul of Ghana's streets to your table. Reach out for bulk orders, collaborations, or just to say hello.
+            Looking to bring authentic Ghanaian flavors to your next celebration? Whether it's a small gathering or a grand event, our handcrafted traditional drinks and Abele Walls ice cream offer a unique cultural experience. Reach out for bulk orders, collaborations, or just to say hello.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <a 
-              href="https://wa.me/" 
+              href="https://wa.me/13606087185" 
               className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold rounded-xl shadow-lg hover:shadow-xl transition-all scale-100 active:scale-95"
             >
               <span className="material-symbols-outlined mr-2">chat</span>
@@ -51,13 +51,13 @@ export const Contact = () => {
         <div className="md:col-span-5 relative mt-8 md:mt-0">
           <div className="aspect-[4/5] rounded-xl overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-500">
             <img 
-              alt="Ghanaian Street Food hamburger/burger representation" 
+              alt="Abele Walls Ghanaian Ice Cream" 
               className="w-full h-full object-cover" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvqUV7yf-u7gNMMB_C2ii0JG8QjSQDA4FxInSTiBLVCYtaXpH0-j8BGZsKsm2zYiLr5fw5odtzGjsIK-Dhd4NBEiw4ymTI-aLuwDiMoDnEZIgmEL-c5HAKq2IoETFGgIWkCTYv6SwRhaoxMjgoPtddfwo8agnbBL-dbFJsLGUFLOChH-3oHB108XhlUpF4vN4ApbF69yThR8Bofvxesda-7rfsZSdysSDYYYsVYecWCkrypU7tCBocL9dhxSTggqkfGZMf39sPUT8"
+              src="/abele%20walls%20casual%20edited.png"
             />
           </div>
           <div className="absolute -bottom-6 -left-6 bg-primary p-6 rounded-xl shadow-xl hidden md:block z-20">
-            <p className="font-headline text-on-primary italic text-lg text-center leading-tight">Spiced to<br/>Perfection</p>
+            <p className="font-headline text-on-primary italic text-lg text-center leading-tight">Authentic<br/>Flavors</p>
           </div>
         </div>
       </section>
@@ -72,12 +72,17 @@ export const Contact = () => {
             <p className="text-lg text-on-surface-variant mb-2">Mountain View, CA</p>
             <p className="text-sm uppercase tracking-widest text-primary font-bold mb-8">Serving the entire Bay Area</p>
           </div>
-          <div className="w-full h-48 rounded-lg overflow-hidden grayscale contrast-125 hover:grayscale-0 transition-all duration-700 mt-4 md:mt-0">
-            <img 
-              alt="Top down aerial map view of a sunlit urban California neighborhood" 
-              className="w-full h-full object-cover" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPrHayCyUUS7fWUoqPW_9IzfDVSGI6zknmTfK32JmXCIFzhkkKweNiMcw2CK9wGbfgA9RP36lk6jJ5oTC9r6IwKfM5N-4bFFDuxCwbvHhSMekmfqyHMDWf0ertFUX96P2zHbxbKFNLmd76LQYxwLUYkXXRgjEDLXAMLI_vLPHiY55Kg6c-P-GB3RjbuHZwY7OdSsfPponPjF47Ob9TANq-4oWezmgB75iv37GSjfht5gaWWdD9XCoGLXqiWUmKxJCG8TTeuIqee5Q"
-            />
+          <div className="w-full h-64 md:h-80 rounded-lg overflow-hidden transition-all duration-700 mt-4 md:mt-0 shadow-sm border border-outline-variant/30">
+            <iframe 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d101397.71181216503!2d-122.14660305820313!3d37.38605170000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x808fba02425dad8f%3A0x6c296c66619367e0!2sMountain%20View%2C%20CA!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus" 
+              width="100%" 
+              height="100%" 
+              style={{ border: 0 }} 
+              allowFullScreen={false} 
+              loading="lazy" 
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Google Maps Location - Selorm's Street Treats Mountain View"
+            ></iframe>
           </div>
         </div>
 
@@ -85,25 +90,38 @@ export const Contact = () => {
         <div className="md:col-span-1 bg-secondary-container rounded-xl p-8 md:p-10 flex flex-col justify-between text-on-secondary-container">
           <div>
             <h3 className="font-headline text-3xl font-bold mb-8">Get Social</h3>
-            <ul className="space-y-8">
-              <li className="flex items-center group cursor-pointer">
-                <span className="material-symbols-outlined mr-4 group-hover:scale-110 transition-transform">mail</span>
-                <div>
-                  <p className="text-xs uppercase tracking-widest opacity-80 mb-1">Email Us</p>
-                  <p className="font-bold text-lg">ss.treat@gmail.com</p>
-                </div>
+            <ul className="space-y-6">
+              <li>
+                <a href="mailto:sst.treat@gmail.com" className="flex items-center group cursor-pointer">
+                  <span className="material-symbols-outlined mr-4 group-hover:scale-110 transition-transform">mail</span>
+                  <div>
+                    <p className="text-xs uppercase tracking-widest opacity-80 mb-1">Email</p>
+                    <p className="font-bold text-lg">sst.treat@gmail.com</p>
+                  </div>
+                </a>
               </li>
-              <li className="flex items-center group cursor-pointer">
-                <span className="material-symbols-outlined mr-4 group-hover:scale-110 transition-transform">photo_camera</span>
-                <div>
-                  <p className="text-xs uppercase tracking-widest opacity-80 mb-1">Follow</p>
-                  <p className="font-bold text-lg">@ststreettreats</p>
-                </div>
+              <li>
+                <a href="https://instagram.com/sstreettreats" target="_blank" rel="noopener noreferrer" className="flex items-center group cursor-pointer">
+                  <span className="material-symbols-outlined mr-4 group-hover:scale-110 transition-transform">photo_camera</span>
+                  <div>
+                    <p className="text-xs uppercase tracking-widest opacity-80 mb-1">Instagram</p>
+                    <p className="font-bold text-lg">@sstreettreats</p>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a href="tel:+13606087185" className="flex items-center group cursor-pointer">
+                  <span className="material-symbols-outlined mr-4 group-hover:scale-110 transition-transform">call</span>
+                  <div>
+                    <p className="text-xs uppercase tracking-widest opacity-80 mb-1">Phone</p>
+                    <p className="font-bold text-lg">(360) 608-7185</p>
+                  </div>
+                </a>
               </li>
             </ul>
           </div>
           <div className="mt-8 pt-8 border-t border-on-secondary-container/20">
-            <p className="italic font-headline text-lg">"Bringing Ghanaian flavor to your digital doorstep."</p>
+            <p className="italic font-headline text-lg">"A Taste of Home — For Everyone."</p>
           </div>
         </div>
       </section>
@@ -113,20 +131,20 @@ export const Contact = () => {
         <div className="lg:sticky lg:top-24">
           <h2 className="font-headline text-4xl md:text-5xl font-bold mb-6 text-on-surface">Bulk Order <span className="text-primary italic">Inquiry</span></h2>
           <p className="text-on-surface-variant text-lg mb-8 leading-relaxed">
-            Planning an event? Our bulk catering packages are designed for groups of 20 or more. Fill out the form and our kitchen lead will reach out within 24 hours to discuss your customized menu.
+            Planning an event, wedding, or corporate gathering? Our handcrafted drinks and Abele Walls ice cream packages are perfect for sharing our rich culture with your guests. Fill out the form below and we'll reach out within 24 hours to coordinate.
           </p>
           <div className="space-y-4">
             <div className="flex items-center text-on-surface-variant text-lg">
               <span className="material-symbols-outlined text-primary mr-3">check_circle</span>
-              <span>Customized Spice Levels</span>
+              <span>Authentic Ghanaian Ingredients</span>
             </div>
             <div className="flex items-center text-on-surface-variant text-lg">
               <span className="material-symbols-outlined text-primary mr-3">check_circle</span>
-              <span>Vegan & Gluten-Free Options</span>
+              <span>No Preservatives or Additives</span>
             </div>
             <div className="flex items-center text-on-surface-variant text-lg">
               <span className="material-symbols-outlined text-primary mr-3">check_circle</span>
-              <span>Delivery & Setup Available</span>
+              <span>Bay Area Pickup & Delivery Options</span>
             </div>
           </div>
         </div>

@@ -1,10 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, Navigate } from 'react-router-dom';
-import { CheckCircle, Instagram, MapPin, MessageSquare } from 'lucide-react';
+import { CheckCircle, Instagram, MapPin, MessageSquare, UserPlus } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export const OrderConfirmation = () => {
   const location = useLocation();
   const state = location.state as { email?: string; orderId?: string; notes?: string } | null;
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    if (supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+      });
+    }
+  }, []);
 
   // If someone navigates here directly without an order, send them home
   if (!state || !state.orderId) {
@@ -50,12 +60,27 @@ export const OrderConfirmation = () => {
             <div className="flex items-start">
               <MapPin className="text-brand-amber mt-1 mr-4 flex-shrink-0" size={24} />
               <div>
-                <h3 className="font-bold text-brand-brown">Pickup Information</h3>
+                <h3 className="font-bold text-brand-brown">Pickup / Delivery Information</h3>
                 <p className="text-brand-brown/70 mt-1">
-                  Your order will be ready for pickup in approximately 30 minutes at our Mountain View location. We will text you when it's ready.
+                  We have received your order details and chosen fulfillment method. We will be in touch shortly to confirm!
                 </p>
               </div>
             </div>
+            
+            {!session && (
+              <div className="flex items-start bg-brand-amber/10 p-5 rounded-2xl border border-brand-amber/20 mt-6">
+                <UserPlus className="text-brand-amber mt-1 mr-4 flex-shrink-0" size={24} />
+                <div>
+                  <h3 className="font-bold text-brand-brown">Want to track this order?</h3>
+                  <p className="text-brand-brown/70 mt-1 text-sm mb-3">
+                    Create an account to easily track your orders across all devices and save your taste preferences.
+                  </p>
+                  <Link to="/auth/signup" className="inline-block text-xs font-bold bg-brand-brown text-white px-4 py-2 rounded-lg hover:bg-brand-amber transition-colors">
+                    Create Account
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">

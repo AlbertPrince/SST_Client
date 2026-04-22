@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, Package, Clock, ExternalLink } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface OrderItem {
   id: string;
@@ -21,11 +22,53 @@ interface Order {
 
 export const OrderHistory = () => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const savedOrders = JSON.parse(localStorage.getItem('streetTreats_orders') || '[]');
-    setOrders(savedOrders);
+    const fetchOrders = async () => {
+      if (!supabase) {
+        setIsAuthenticated(false);
+        setLoading(false);
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        setIsAuthenticated(true);
+        // Logged in: Fetch from Supabase
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false });
+          
+        if (!error && data) {
+           const dbOrders = data.map(dbItem => ({
+             orderId: dbItem.id.substring(0, 8).toUpperCase(),
+             email: dbItem.customer_email || session.user.email || '',
+             date: dbItem.created_at,
+             total: Number(dbItem.subtotal),
+             status: dbItem.status,
+             items: dbItem.items || []
+           }));
+           setOrders(dbOrders);
+        }
+      } else {
+         setIsAuthenticated(false);
+      }
+      setLoading(false);
+    };
+    
+    fetchOrders();
   }, []);
+
+  if (loading) return null;
+
+  if (isAuthenticated === false) {
+    return <Navigate to="/auth/login" state={{ from: { pathname: '/history' } }} replace />;
+  }
 
   return (
     <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto min-h-screen">

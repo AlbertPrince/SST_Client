@@ -9,6 +9,9 @@ import { Checkout } from './pages/Checkout';
 import { OrderConfirmation } from './pages/OrderConfirmation';
 import { OrderHistory } from './pages/OrderHistory';
 import { Admin } from './pages/Admin';
+import { AdminLogin } from './pages/AdminLogin';
+import { CustomerLogin } from './pages/CustomerLogin';
+import { CustomerSignup } from './pages/CustomerSignup';
 
 export default function App() {
   return (
@@ -24,10 +27,13 @@ export default function App() {
             <Route path="checkout" element={<Checkout />} />
             <Route path="order/confirmation" element={<OrderConfirmation />} />
             <Route path="history" element={<OrderHistory />} />
+            <Route path="auth/login" element={<CustomerLogin />} />
+            <Route path="auth/signup" element={<CustomerSignup />} />
           </Route>
           
           {/* Dedicated Admin Portal container */}
           <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
         </Routes>
       </BrowserRouter>
     </CartProvider>
