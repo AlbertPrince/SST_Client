@@ -8,10 +8,28 @@ export const Contact = () => {
     quantity: ''
   });
 
+  const [errorMessage, setErrorMessage] = useState('');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Use the native browser alert or replace with your custom toast modal later. For now, it matches functionality.
-    alert('Thank you for your inquiry! We will get back to you soon.');
+    
+    // Client-side email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setErrorMessage('Please enter a valid email address.');
+      return;
+    }
+    
+    setErrorMessage('');
+    
+    let waText = `*New Bulk Order Inquiry*\n\n`;
+    waText += `Name: ${formData.name}\n`;
+    waText += `Email: ${formData.email}\n`;
+    if (formData.quantity) waText += `Quantity Needed: ${formData.quantity}\n`;
+    waText += `\nMessage:\n${formData.message}`;
+    
+    window.open(`https://wa.me/13606087185?text=${encodeURIComponent(waText)}`, '_blank', 'noreferrer,noopener');
+    
     setFormData({ name: '', email: '', message: '', quantity: '' });
   };
 
@@ -34,6 +52,8 @@ export const Contact = () => {
           <div className="flex flex-col sm:flex-row gap-4">
             <a 
               href="https://wa.me/13606087185" 
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold rounded-xl shadow-lg hover:shadow-xl transition-all scale-100 active:scale-95"
             >
               <span className="material-symbols-outlined mr-2">chat</span>
@@ -202,6 +222,12 @@ export const Contact = () => {
                 className="bg-surface-container-highest border-b-2 border-transparent focus:border-primary focus:bg-white focus:ring-0 px-4 py-3 rounded-t-lg transition-all w-full outline-none resize-none"
               ></textarea>
             </div>
+            
+            {errorMessage && (
+              <div className="bg-error-container text-on-error-container p-4 rounded-xl text-sm font-medium">
+                {errorMessage}
+              </div>
+            )}
             
             <button 
               type="submit" 

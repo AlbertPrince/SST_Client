@@ -67,23 +67,26 @@ const Navbar = () => {
             ))}
           </div>
           
-          <div className="hidden md:flex items-center gap-6 text-[#C97D0A]">
+          <div className="flex items-center gap-2 md:gap-6 text-[#C97D0A]">
             {session ? (
-              <div className="flex items-center gap-4 text-sm font-semibold font-serif">
+              <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm font-semibold font-serif whitespace-nowrap">
                 <Link to="/history" className="text-[#3B1A00] hover:text-[#C97D0A] transition-colors flex items-center gap-1">
-                  <User size={18} /> My Orders
+                  <User size={18} /> <span className="hidden md:inline">My Orders</span>
                 </Link>
+                {(session?.user?.email?.toLowerCase() === 'ss.treat@gmail.com' || session?.user?.email?.toLowerCase() === 'apmensah@gmail.com' || session?.user?.email?.toLowerCase() === 'sst.treat@gmail.com') && (
+                   <Link to="/admin" className="text-[#3B1A00] hover:text-[#C97D0A] transition-colors font-bold">Admin</Link>
+                )}
                 <button onClick={handleSignOut} className="text-[#3B1A00]/70 hover:text-[#C0392B] transition-colors flex items-center gap-1">
-                  <LogOut size={18} /> Sign Out
+                  <LogOut size={18} /> <span className="hidden md:inline">Sign Out</span>
                 </button>
               </div>
             ) : (
-              <Link to="/auth/login" className="text-sm font-bold font-serif text-[#3B1A00] hover:text-[#C97D0A] transition-colors border-2 border-[#C97D0A] px-4 py-1.5 rounded-full hover:bg-[#C97D0A]/5">
+              <Link to="/auth/login" className="text-xs md:text-sm font-bold font-serif text-[#3B1A00] hover:text-[#C97D0A] transition-colors border-2 border-[#C97D0A] px-3 py-1 md:px-4 md:py-1.5 rounded-full hover:bg-[#C97D0A]/5 whitespace-nowrap">
                 Sign In
               </Link>
             )}
 
-            <Link to="/checkout" className="relative group">
+            <Link to="/checkout" className="relative group hidden md:block">
               <button className="material-symbols-outlined p-2 hover:bg-[#E8A020]/10 rounded-full transition-all scale-95 group-active:scale-90 flex items-center justify-center">
                 shopping_cart
               </button>
@@ -115,6 +118,12 @@ const Navbar = () => {
           <Phone size={22} className={isActive('/contact') ? 'fill-[#C97D0A]/20' : ''} />
           <span className="text-[10px] font-bold mt-1">Contact</span>
         </Link>
+        {(session?.user?.email?.toLowerCase() === 'ss.treat@gmail.com' || session?.user?.email?.toLowerCase() === 'apmensah@gmail.com' || session?.user?.email?.toLowerCase() === 'sst.treat@gmail.com') && (
+          <Link to="/admin" className={`flex flex-col items-center p-2 rounded-xl transition-all ${isActive('/admin') ? 'text-[#C97D0A]' : 'text-[#3B1A00]/70'}`}>
+            <span className="material-symbols-outlined text-[22px] leading-none mb-1">dashboard</span>
+            <span className="text-[10px] font-bold">Admin</span>
+          </Link>
+        )}
         <Link to="/checkout" className={`flex flex-col items-center p-2 rounded-xl transition-all relative ${isActive('/checkout') || isActive('/order/confirmation') ? 'text-[#C97D0A]' : 'text-[#3B1A00]/70'}`}>
           <div className="relative">
             <ShoppingCart size={22} className={isActive('/checkout') || isActive('/order/confirmation') ? 'fill-[#C97D0A]/20' : ''} />
@@ -141,10 +150,9 @@ const Footer = () => {
         </div>
         <div className="flex flex-wrap justify-center gap-6 md:gap-8 mb-6 md:mb-0">
           <Link to="/contact" className="text-[#FDF3DC]/70 hover:text-[#FDF3DC] transition-opacity">Contact Us</Link>
-          <Link to="/history" className="text-[#FDF3DC]/70 hover:text-[#FDF3DC] transition-opacity">Order History</Link>
-          <Link to="/admin" className="text-[#FDF3DC]/70 hover:text-[#C97D0A] transition-colors font-bold">Admin Portal</Link>
-          <a href="#" className="text-[#FDF3DC]/70 hover:text-[#FDF3DC] transition-opacity">Privacy Policy</a>
-          <a href="#" className="text-[#FDF3DC]/70 hover:text-[#FDF3DC] transition-opacity">Shipping Info</a>
+          <Link to="/shipping" className="text-[#FDF3DC]/70 hover:text-[#FDF3DC] transition-opacity">Shipping Info</Link>
+          <Link to="/privacy" className="text-[#FDF3DC]/70 hover:text-[#FDF3DC] transition-opacity">Privacy Policy</Link>
+          // <Link to="/admin" className="text-[#C97D0A] font-bold hover:text-[#E8A020] transition-colors border border-[#C97D0A]/30 px-3 py-0.5 rounded-full text-xs flex items-center">Admin Portal</Link>
         </div>
         <div className="text-[#FDF3DC]/50 text-xs text-center md:text-right">
           © {new Date().getFullYear()} Selorm's Street Treats. Crafted with Heritage.

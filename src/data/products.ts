@@ -1,11 +1,17 @@
+export type ProductSize = {
+  label: string;
+  price: number;
+};
+
 export type Product = {
   id: string;
   name: string;
   slug: string;
-  category: 'drink' | 'icecream';
+  category: string;
   price: number;
   unitLabel: string;
   image: string;
+  sizes?: ProductSize[];
   shortDescription: string;
   fullDescription: string;
   culturalOrigin: string;
@@ -22,7 +28,7 @@ export const products: Product[] = [
     category: 'drink',
     price: 12.00,
     unitLabel: '8oz bottle',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBat1TuPoHxvoBhW127nEBs9n1uN7xqSx6OiTX1L9err-ZZxua7eekjaYbiHgJslGzDn6_b_fIH3hxpwU3RSaF5CIWC8keDL-dT4NeLl_VkrMmCdo9IAXxPa3tZRjGbKojsXJWgwjk-qkUx9bq88C67VWQ1yuhbfvQa43PvGjlhj8tXDKvu-mHw5NNeP13zzjUPAF11JjteQVk-sDwoUAfgRiDyjA4y03qXVWtpPUzuAl-zXpAywiYukuIsS8y25NnLhVoNubm0JZo',
+    image: '/sst zomkom updtd.png',
     shortDescription: 'Spicy millet smoothie infused with ginger, cloves, and a touch of organic honey.',
     fullDescription: 'Historically enjoyed by nomadic groups in Northern Ghana, Zomkom was a vital source of energy. Our version stays true to the traditional millet base but elevates it with organic ginger from the Volta region.',
     culturalOrigin: 'Originating from the Northern regions of Ghana, Zomkom is a drink of hospitality, traditionally offered to welcome guests into a home.',
@@ -37,7 +43,7 @@ export const products: Product[] = [
     category: 'drink',
     price: 10.00,
     unitLabel: '12oz bottle',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCM9uG96UA_lqXXZ1zHHpon6xn3mg3-zGQltxMYOzrF_hb3NIPl77h-DKapJA2_gYXxFqZo3Rf96hlA2nx3u5wIshpD6MyTXx7_I7lrPVRSLi2RrwhpL_yAIJ1fFodZsyNjIgOBJ8PQCPSbqyuZWhKV8q27GouMOj5rfwt0ZnJ7tX0VBNfVCtyaPV21IYIptIAbaZ8Lf1zxUrRWgYFPwL_jGJs_W_TQMOcpytpLnSnSQdbdLtB2OSd4nWLaCPMLL1khm30lXKQvIT8',
+    image: '/SSt Sobolo updt.png',
     shortDescription: 'Hibiscus tea brewed with local spices, pineapple skins, and African birds-eye chili.',
     fullDescription: 'A deeply refreshing, ruby-red beverage made from dried roselle (hibiscus) leaves, steeped with fresh ginger, pineapple peels, and aromatic spices. Perfectly balanced between tart and sweet.',
     culturalOrigin: 'A staple across West Africa, known as Bissap in Senegal and Zobo in Nigeria. In Ghana, it is a beloved street drink often served ice cold at gatherings.',
@@ -52,7 +58,7 @@ export const products: Product[] = [
     category: 'drink',
     price: 14.00,
     unitLabel: '10oz bottle',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBeVsyeXeaMWegYZ3xVPPZH_4O_4s3tvBGZosMvr3SMuII9gQhtT56S6Xw1z5KklJbYZrDDh0luAHu8Y9aohQ7s4o5NWEc2Fb8A2lBr6EiXjSdvc4p_WqRS4V-qx3P000mfhzgVx1PRk-YQWvdKlUnGT2ZKqDgaMiILOW7nw3yTju8fUhaESCQDkjhGlTWO60P4t-EunoJtH-yx1Bqt3BaehXv_HKHrE8hyJON4sQo7inuaGEKYTcsA_kFcY5ODSFgZZy2880nWxoc',
+    image: '/sst hausa beer updtd2.png',
     shortDescription: 'Rich, non-alcoholic fermented sorghum nectar with deep caramel and toasted grain notes.',
     fullDescription: 'A chilled, refreshing take on the traditional Hausa Koko. It retains the signature spicy kick of ginger and peppercorn but is served as a cooling beverage.',
     culturalOrigin: 'Derived from Hausa Koko, a popular Ghanaian street food breakfast porridge.',

@@ -54,9 +54,9 @@ export const Home = () => {
   }, []);
   
   // Grab specific items to feature, or fallback to the first 3 available products
-  const zomkom = products.find(p => p.name.toLowerCase().includes('zomkom'));
-  const abele = products.find(p => p.name.toLowerCase().includes('abele') && p.name.toLowerCase().includes('original'));
-  const streetMix = products.find(p => p.name.toLowerCase().includes('street mix'));
+  const zomkom = products.find(p => p.name?.toLowerCase().includes('zomkom'));
+  const abele = products.find(p => p.name?.toLowerCase().includes('abele') && p.name?.toLowerCase().includes('original'));
+  const streetMix = products.find(p => p.name?.toLowerCase().includes('street mix'));
 
   const featuredProducts = [];
   
@@ -154,15 +154,20 @@ export const Home = () => {
                 key={product.id} 
                 className={`group rounded-xl overflow-hidden editorial-shadow transition-all hover:-translate-y-2 flex flex-col ${
                   index % 2 === 1 ? 'bg-surface-container-highest' : 'bg-surface-container-lowest'
-                }`}
+                } ${!product.isAvailable ? 'opacity-70' : ''}`}
               >
                 <div className="h-72 overflow-hidden relative">
                   <img 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                    className={`w-full h-full object-cover transition-transform duration-500 ${product.isAvailable ? 'group-hover:scale-110' : 'grayscale'}`} 
                     alt={product.name} 
                     src={product.image}
                     referrerPolicy="no-referrer"
                   />
+                  {!product.isAvailable && (
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-on-surface/80 backdrop-blur-md px-6 py-2 rounded-full text-sm font-bold tracking-widest text-surface uppercase">
+                      Sold Out
+                    </div>
+                  )}
                 </div>
                 <div className="p-8 flex-1 flex flex-col">
                   <span className="text-tertiary font-bold tracking-widest text-xs uppercase mb-2 block">{product.displayTag}</span>
@@ -171,11 +176,15 @@ export const Home = () => {
                   <div className="flex items-center justify-between border-t border-outline-variant pt-6">
                     <span className="font-headline text-2xl text-on-surface">${product.price.toFixed(2)}</span>
                     <button 
-                      onClick={() => addToCart(product as any)}
-                      className="material-symbols-outlined bg-primary text-on-primary p-3 rounded-full hover:bg-primary-container transition-colors"
+                      onClick={() => product.isAvailable && addToCart(product as any)}
+                      disabled={!product.isAvailable}
+                      className={`material-symbols-outlined p-3 rounded-full transition-colors ${product.isAvailable ? 'bg-primary text-on-primary hover:bg-primary-container' : 'bg-surface-container-highest text-on-surface-variant cursor-not-allowed hidden'}`}
                     >
                       add
                     </button>
+                    {!product.isAvailable && (
+                      <span className="text-error font-bold uppercase tracking-wider text-sm">Out of Stock</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -301,6 +310,8 @@ export const Home = () => {
             </Link>
             <a 
               href="https://wa.me/13606087185"
+              target="_blank"
+              rel="noopener noreferrer"
               className="bg-primary-container text-on-primary-container px-12 py-5 rounded-full font-bold text-lg hover:scale-105 transition-transform flex items-center justify-center gap-3 editorial-shadow border border-on-primary/20"
             >
               <span className="material-symbols-outlined">chat</span>

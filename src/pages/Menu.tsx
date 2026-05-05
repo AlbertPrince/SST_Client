@@ -6,8 +6,9 @@ export const Menu = () => {
   const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'drink' | 'icecream'>('all');
+  const [filter, setFilter] = useState<string>('all');
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [selectedSizes, setSelectedSizes] = useState<Record<string, number>>({});
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
@@ -25,9 +26,8 @@ export const Menu = () => {
 
   const displayProducts = filter === 'all' ? products : products.filter(p => p.category === filter);
   
-  // Group products if 'all' is selected for that bento sectioning style from the reference
-  const drinks = displayProducts.filter(p => p.category === 'drink');
-  const iceCreams = displayProducts.filter(p => p.category === 'icecream');
+  const categories = Array.from(new Set(products.map(p => p.category)));
+  const filterTabs = ['all', ...categories];
 
   const handleQuantityChange = (productId: string, delta: number) => {
     setQuantities(prev => {
@@ -37,26 +37,45 @@ export const Menu = () => {
     });
   };
 
+  const handleSizeChange = (productId: string, sizeIdx: number) => {
+    setSelectedSizes(prev => ({ ...prev, [productId]: sizeIdx }));
+  };
+
   const handleAddToCart = (product: Product) => {
     const qty = quantities[product.id] || 1;
-    addToCart(product, qty);
+    const sizeIdx = selectedSizes[product.id] ?? -1;
+    let finalProduct = product;
+    let sizeLabel = undefined;
+    
+    if (sizeIdx >= 0 && product.sizes && product.sizes[sizeIdx]) {
+      finalProduct = { ...product, price: product.sizes[sizeIdx].price };
+      sizeLabel = product.sizes[sizeIdx].label;
+    }
+
+    addToCart(finalProduct, qty, sizeLabel);
+    
     // Reset quantity after adding
     setQuantities(prev => ({ ...prev, [product.id]: 1 }));
   };
 
-  const ProductCard = ({ product, showBestSeller = false }: { product: Product, showBestSeller?: boolean }) => (
-    <div className="group relative bg-surface-container-low rounded-xl overflow-visible transition-all hover:shadow-xl hover:translate-y-[-4px] flex flex-col">
+  const ProductCard: React.FC<{ product: Product, showBestSeller?: boolean }> = ({ product, showBestSeller = false }) => (
+    <div className={`group relative bg-surface-container-low rounded-xl overflow-visible transition-all hover:shadow-xl hover:translate-y-[-4px] flex flex-col ${!product.isAvailable ? 'opacity-70' : ''}`}>
       <div className="h-64 w-full relative overflow-hidden rounded-t-xl mb-4">
         <img 
           src={product.image} 
           alt={product.name} 
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 cursor-pointer"
+          className={`w-full h-full object-cover transition-transform duration-500 cursor-pointer ${product.isAvailable ? 'group-hover:scale-110' : 'grayscale'}`}
           onClick={() => setSelectedProduct(product)}
           referrerPolicy="no-referrer"
         />
-        {showBestSeller && (
+        {showBestSeller && product.isAvailable && (
           <div className="absolute top-4 right-4 bg-white/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold tracking-widest text-primary uppercase">
             Best Seller
+          </div>
+        )}
+        {!product.isAvailable && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-on-surface/80 backdrop-blur-md px-6 py-2 rounded-full text-sm font-bold tracking-widest text-surface uppercase">
+            Sold Out
           </div>
         )}
       </div>
@@ -65,39 +84,59 @@ export const Menu = () => {
         <div className="flex justify-between items-start mb-2">
           <div>
             <h3 
-              className="text-2xl font-bold text-on-surface font-headline cursor-pointer hover:text-primary transition-colors"
+              className={`text-2xl font-bold font-headline transition-colors ${product.isAvailable ? 'text-on-surface cursor-pointer hover:text-primary' : 'text-on-surface-variant'}`}
               onClick={() => setSelectedProduct(product)}
             >
               {product.name}
             </h3>
-            <span className="text-sm text-on-surface-variant font-medium">{product.unitLabel}</span>
+            {(!product.sizes || product.sizes.length === 0) ? (
+              <span className="text-sm text-on-surface-variant font-medium">{product.unitLabel}</span>
+            ) : (
+              <select 
+                title="Select Size"
+                className="mt-1 block text-sm border-none bg-surface-container-high rounded px-2 py-1 outline-none font-bold text-primary disabled:opacity-50"
+                value={selectedSizes[product.id] ?? -1} 
+                onChange={(e) => handleSizeChange(product.id, Number(e.target.value))}
+                disabled={!product.isAvailable}
+              >
+                <option value={-1}>{product.unitLabel} - ${product.price.toFixed(2)}</option>
+                {product.sizes.map((s, idx) => (
+                  <option key={idx} value={idx}>{s.label} - ${s.price.toFixed(2)}</option>
+                ))}
+              </select>
+            )}
           </div>
-          <span className="text-2xl font-bold font-headline text-primary">${product.price.toFixed(2)}</span>
+          {(!product.sizes || product.sizes.length === 0) && (
+            <span className={`text-2xl font-bold font-headline ${product.isAvailable ? 'text-primary' : 'text-on-surface-variant'}`}>${product.price.toFixed(2)}</span>
+          )}
         </div>
         
         <p className="text-on-surface-variant text-lg mb-6 leading-relaxed flex-grow">{product.shortDescription}</p>
         
         <div className="flex items-center justify-between gap-4 mt-auto">
-          <div className="flex items-center bg-surface-container-highest rounded-full px-3 py-1">
+          <div className={`flex items-center bg-surface-container-highest rounded-full px-3 py-1 ${!product.isAvailable ? 'opacity-50 pointer-events-none' : ''}`}>
             <button 
               onClick={() => handleQuantityChange(product.id, -1)}
-              className="p-1 hover:text-primary flex items-center justify-center"
+              className="p-1 hover:text-primary flex items-center justify-center disabled:opacity-50"
+              disabled={!product.isAvailable}
             >
               <span className="material-symbols-outlined text-sm">remove</span>
             </button>
             <span className="px-4 font-bold">{quantities[product.id] || 1}</span>
             <button 
               onClick={() => handleQuantityChange(product.id, 1)}
-              className="p-1 hover:text-primary flex items-center justify-center"
+              className="p-1 hover:text-primary flex items-center justify-center disabled:opacity-50"
+              disabled={!product.isAvailable}
             >
               <span className="material-symbols-outlined text-sm">add</span>
             </button>
           </div>
           <button 
             onClick={() => handleAddToCart(product)}
-            className="flex-1 bg-gradient-to-r from-primary to-primary-container text-on-primary py-3 rounded-full font-bold shadow-md hover:opacity-90 transition-opacity"
+            className={`flex-1 py-3 rounded-full font-bold shadow-md transition-opacity ${product.isAvailable ? 'bg-gradient-to-r from-primary to-primary-container text-on-primary hover:opacity-90' : 'bg-surface-container-highest text-on-surface-variant cursor-not-allowed'}`}
+            disabled={!product.isAvailable}
           >
-            Add to Cart
+            {product.isAvailable ? 'Add to Cart' : 'Out of Stock'}
           </button>
         </div>
         <button 
@@ -148,7 +187,7 @@ export const Menu = () => {
     const avgRating = reviews.length > 0 ? (reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length).toFixed(1) : null;
 
     return (
-      <div className="mt-8 border-t border-outline-variant/20 pt-8 col-span-1 md:col-span-2">
+      <div className="mt-8 border-t border-outline-variant/20 pt-8">
         <h3 className="text-2xl font-bold font-headline mb-4 flex items-center gap-3">
           Customer Reviews
           {avgRating && (
@@ -255,17 +294,17 @@ export const Menu = () => {
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap gap-4 mb-12 items-center justify-center md:justify-start">
-        {(['all', 'drink', 'icecream'] as const).map(f => (
+        {filterTabs.map(f => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-8 py-2.5 rounded-full font-medium transition-transform transition-colors ${
+            className={`px-8 py-2.5 rounded-full font-medium transition-transform transition-colors capitalize ${
               filter === f 
                 ? 'bg-primary text-on-primary shadow-lg hover:-translate-y-[2px]' 
                 : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary-fixed-dim hover:text-on-primary'
             }`}
           >
-            {f === 'all' ? 'All' : f === 'drink' ? 'Drinks' : 'Ice Cream'}
+            {f}
           </button>
         ))}
       </div>
@@ -276,26 +315,25 @@ export const Menu = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          
-          {/* Drinks Section */}
-          {drinks.map((product) => (
-            <ProductCard key={product.id} product={product} showBestSeller={product.slug === 'zomkom'} />
-          ))}
-
-          {/* Ice Cream Section Subheader (only show if mixed or icecream filter) */}
-          {(filter === 'all' || filter === 'icecream') && iceCreams.length > 0 && (
-            <div className="md:col-span-2 lg:col-span-3 pt-12 pb-6">
-              <h2 className="text-4xl font-bold text-on-surface flex items-center gap-4 font-headline space-x-4">
-                <span>Abele Walls (Signature Ice Cream)</span>
-                <span className="flex-1 h-[2px] bg-outline-variant opacity-30 mt-2"></span>
-              </h2>
-            </div>
-          )}
-
-          {/* Ice Cream Section */}
-          {iceCreams.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {categories.filter(c => filter === 'all' || filter === c).map(category => {
+            const categoryProducts = displayProducts.filter(p => p.category === category);
+            if (categoryProducts.length === 0) return null;
+            return (
+              <React.Fragment key={category}>
+                {filter === 'all' && (
+                  <div className="md:col-span-2 lg:col-span-3 pt-12 pb-6 first:pt-0">
+                    <h2 className="text-4xl font-bold text-on-surface flex items-center gap-4 font-headline space-x-4 capitalize">
+                      <span>{category === 'icecream' ? 'Abele Walls' : category}</span>
+                      <span className="flex-1 h-[2px] bg-outline-variant opacity-30 mt-2"></span>
+                    </h2>
+                  </div>
+                )}
+                {categoryProducts.map(product => (
+                  <ProductCard key={product.id} product={product} showBestSeller={product.slug === 'zomkom'} />
+                ))}
+              </React.Fragment>
+            );
+          })}
         </div>
       )}
 
@@ -312,7 +350,7 @@ export const Menu = () => {
             </button>
             <div className="overflow-y-auto pr-2 custom-scrollbar">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
-                <div className="flex flex-col gap-4 sticky top-0">
+                <div className="flex flex-col gap-4 sticky top-0 self-start">
                   <img 
                     className="rounded-2xl aspect-square object-cover shadow-md w-full" 
                     alt={selectedProduct.name} 
@@ -326,7 +364,7 @@ export const Menu = () => {
                       }}
                       className="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary py-3 rounded-full font-bold shadow-md hover:opacity-90 transition-opacity"
                     >
-                      Add to Cart - ${(selectedProduct.price * (quantities[selectedProduct.id] || 1)).toFixed(2)}
+                      Add to Cart - ${((selectedSizes[selectedProduct.id] >= 0 && selectedProduct.sizes ? selectedProduct.sizes[selectedSizes[selectedProduct.id]].price : selectedProduct.price) * (quantities[selectedProduct.id] || 1)).toFixed(2)}
                     </button>
                     <div className="flex items-center justify-center bg-surface-container-highest rounded-full px-3 py-2 shrink-0">
                       <button 
@@ -346,7 +384,26 @@ export const Menu = () => {
                   </div>
                 </div>
                 <div className="flex flex-col">
-                  <h2 className="text-3xl font-bold font-headline mb-4">{selectedProduct.name}</h2>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h2 className="text-3xl font-bold font-headline">{selectedProduct.name}</h2>
+                      {(!selectedProduct.sizes || selectedProduct.sizes.length === 0) ? (
+                        <p className="text-xl font-bold text-primary mt-1">${selectedProduct.price.toFixed(2)} / {selectedProduct.unitLabel}</p>
+                      ) : (
+                        <select 
+                          title="Select Size"
+                          className="mt-2 block text-lg border-none bg-surface-container-high rounded px-3 py-2 outline-none font-bold text-primary"
+                          value={selectedSizes[selectedProduct.id] ?? -1} 
+                          onChange={(e) => handleSizeChange(selectedProduct.id, Number(e.target.value))}
+                        >
+                          <option value={-1}>{selectedProduct.unitLabel} - ${selectedProduct.price.toFixed(2)}</option>
+                          {selectedProduct.sizes.map((s, idx) => (
+                            <option key={idx} value={idx}>{s.label} - ${s.price.toFixed(2)}</option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  </div>
                   <p className="text-on-surface-variant mb-6 leading-relaxed">
                     {selectedProduct.fullDescription}
                   </p>
@@ -354,7 +411,7 @@ export const Menu = () => {
                   <div className="bg-surface-container-low p-4 rounded-xl border-l-4 border-primary mb-6">
                     <p className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Ingredients</p>
                     <p className="text-sm text-on-surface">
-                      {selectedProduct.ingredients.join(', ')}.
+                      {Array.isArray(selectedProduct.ingredients) ? selectedProduct.ingredients.join(', ') : selectedProduct.ingredients || ''}.
                     </p>
                   </div>
                   
@@ -362,9 +419,9 @@ export const Menu = () => {
                     <div className="bg-surface-container-low p-4 rounded-xl border-l-4 border-secondary mb-6">
                       <p className="text-sm font-bold uppercase tracking-widest text-secondary mb-2">Why It's Good</p>
                       <ul className="text-sm text-on-surface list-disc list-inside">
-                        {selectedProduct.healthBenefits.map((benefit, idx) => (
+                        {Array.isArray(selectedProduct.healthBenefits) ? selectedProduct.healthBenefits.map((benefit, idx) => (
                           <li key={idx}>{benefit}</li>
-                        ))}
+                        )) : <li>{selectedProduct.healthBenefits}</li>}
                       </ul>
                     </div>
                   )}
@@ -378,13 +435,13 @@ export const Menu = () => {
                       }}
                       className="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary py-3 rounded-full font-bold shadow-md hover:opacity-90 transition-opacity"
                     >
-                      Add to Cart - ${(selectedProduct.price * (quantities[selectedProduct.id] || 1)).toFixed(2)}
+                      Add to Cart - ${((selectedSizes[selectedProduct.id] >= 0 && selectedProduct.sizes ? selectedProduct.sizes[selectedSizes[selectedProduct.id]].price : selectedProduct.price) * (quantities[selectedProduct.id] || 1)).toFixed(2)}
                     </button>
                   </div>
+                  
+                  {/* Reviews Section */}
+                  <ProductReviews productId={selectedProduct.id} />
                 </div>
-
-                {/* Reviews Section */}
-                <ProductReviews productId={selectedProduct.id} />
               </div>
             </div>
           </div>

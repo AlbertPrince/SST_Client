@@ -5,7 +5,16 @@ import { supabase } from '../lib/supabase';
 
 export const OrderConfirmation = () => {
   const location = useLocation();
-  const state = location.state as { email?: string; orderId?: string; notes?: string } | null;
+  const state = location.state as { 
+    email?: string; 
+    orderId?: string; 
+    notes?: string;
+    fulfillmentMethod?: string;
+    deliveryAddress?: { street: string; city: string; state: string; zip: string };
+    subtotal?: number;
+    deliveryFee?: number;
+    total?: number;
+  } | null;
   const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
@@ -57,13 +66,30 @@ export const OrderConfirmation = () => {
           </div>
           
           <div className="space-y-6 text-left mb-10 relative z-10">
-            <div className="flex items-start">
+            <div className="flex items-start bg-brand-cream/30 p-6 rounded-2xl border border-brand-brown/10">
               <MapPin className="text-brand-amber mt-1 mr-4 flex-shrink-0" size={24} />
-              <div>
-                <h3 className="font-bold text-brand-brown">Pickup / Delivery Information</h3>
-                <p className="text-brand-brown/70 mt-1">
-                  We have received your order details and chosen fulfillment method. We will be in touch shortly to confirm!
-                </p>
+              <div className="w-full">
+                <h3 className="font-bold text-brand-brown mb-2 border-b border-brand-brown/10 pb-2">Order Summary</h3>
+                <div className="space-y-2 mt-4 text-brand-brown/80 text-sm">
+                   <div className="flex justify-between">
+                     <span className="font-medium">Fulfillment Strategy:</span>
+                     <span className="font-bold capitalize">{state.fulfillmentMethod?.replace('_', ' ')}</span>
+                   </div>
+                   
+                   {state.fulfillmentMethod !== 'pickup' && state.deliveryAddress && (
+                      <div className="flex justify-between">
+                        <span className="font-medium">Delivery Destination:</span>
+                        <span className="font-bold text-right">{state.deliveryAddress.street}, {state.deliveryAddress.city}, {state.deliveryAddress.state} {state.deliveryAddress.zip}</span>
+                      </div>
+                   )}
+
+                   {state.total !== undefined && (
+                      <div className="flex justify-between pt-2 border-t border-brand-brown/10 mt-2">
+                        <span className="font-bold">Total Paid:</span>
+                        <span className="font-bold text-brand-amber">${state.total.toFixed(2)}</span>
+                      </div>
+                   )}
+                </div>
               </div>
             </div>
             
@@ -83,21 +109,19 @@ export const OrderConfirmation = () => {
             )}
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10 w-full">
+            <Link 
+              to={`/track/${state.orderId}`}
+              className="bg-brand-brown hover:bg-brand-red text-brand-cream font-bold py-3 px-8 rounded-full transition-colors shadow-md border-2 border-transparent w-full sm:w-auto"
+            >
+              Track Order
+            </Link>
             <Link 
               to="/"
-              className="bg-brand-brown hover:bg-brand-red text-brand-cream font-bold py-3 px-8 rounded-full transition-colors shadow-md"
+              className="bg-white border-2 border-brand-brown/20 hover:border-brand-amber text-brand-brown font-bold py-3 px-8 rounded-full transition-colors shadow-sm w-full sm:w-auto"
             >
               Return Home
             </Link>
-            <a 
-              href="https://instagram.com/ststreettreats"
-              target="_blank"
-              rel="noreferrer"
-              className="bg-white border-2 border-brand-brown/20 hover:border-brand-amber text-brand-brown font-bold py-3 px-8 rounded-full transition-colors flex items-center justify-center"
-            >
-              <Instagram size={20} className="mr-2 text-brand-amber" /> Follow us
-            </a>
           </div>
         </div>
       </div>

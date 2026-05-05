@@ -89,7 +89,7 @@ export const About = () => {
               <img 
                 className="w-full h-[500px] object-cover"
                 alt="Portrait of Selorm, founder of SST"
-                src="https://github.com/AlbertPrince/SST_Client/blob/main/public/Selorm%20SST.jpg?raw=true"
+                src="/Selorm%20SST.jpg"
                 referrerPolicy="no-referrer"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent mix-blend-multiply"></div>

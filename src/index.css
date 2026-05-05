@@ -17,6 +17,8 @@
   --color-on-secondary: #ffffff;
 
   --color-tertiary: #ad2b1f;
+  --color-tertiary-container: #cf4434;
+  --color-on-tertiary: #ffffff;
 
   --color-background: #fff8ef;
   --color-on-background: #1f1b0e;
@@ -138,10 +140,6 @@ h1, h2, h3, h4, h5, h6 {
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
